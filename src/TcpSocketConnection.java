@@ -2,17 +2,18 @@ import java.io.*;
 import java.net.Socket;
 
 public class TcpSocketConnection {
-    private static final int PORT = 1995;
+    private static final int PORT = 8189;
     private Socket socket;
-    private SenderViewModel sender; // SenderViewModel 인스턴스
-    private ReceiverViewModel receiver; // ReceiverViewModel 인스턴스
+    private Client_Tcp sender; // Client_Tcp 인스턴스
+    
     public int permanent_id; // 에코 메시지 배열 인덱스와 연결하기 위한 고유 번호 
     
     public void startClient(String serverIP) {
         try {
             socket = new Socket(serverIP, PORT);
-            sender = new SenderViewModel(socket);
-            receiver = new ReceiverViewModel(socket); // ReceiverViewModel 인스턴스 생성
+            sender = new Client_Tcp(socket);
+            //receiver = new Server_Tcp(socket); // Server_Tcp 인스턴스 생성
+            /* 여러 클라이언트를 받으려면 for루프를 통해서 소켓을 생성 */
             permanent_id = NewSocket.clients_tcp_index;
             System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
             if(NewSocket.clients_tcp_index == 0)
@@ -30,27 +31,14 @@ public class TcpSocketConnection {
 				
 				
 			}
-            // 수신 스레드 시작
-            startReceiverThread();
+            
             
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public ReceiverViewModel receiverViewModel_tcp() {
-    	return receiver;
-    }
-    // 수신을 위한 스레드
-    private void startReceiverThread() {
-        new Thread(() -> {
-            try {
-                System.out.println("Listening message by tcp ~ ");
-                receiver.startReceiving(); // ReceiverViewModel의 수신 메서드 호출
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
+    
+    
 
     // TCP 에코 메시지를 전송하는 메서드
     public void sendEchoMessage(String message) {

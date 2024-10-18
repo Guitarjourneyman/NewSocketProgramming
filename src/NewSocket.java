@@ -18,7 +18,7 @@ public class NewSocket extends JFrame {
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    private ReceiverViewModel receiver_tcp;
+    private Server_Tcp receiver_tcp;
     private ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
     private SenderViewModelUdp sender_udp;
@@ -93,8 +93,8 @@ public class NewSocket extends JFrame {
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
-        inputIp = new JTextField("192.167.11.36", 15);
-        inputIp_udpBroad = new JTextField("192.167.11.255",15);
+        inputIp = new JTextField("172.30.1.76", 15);
+        inputIp_udpBroad = new JTextField("192.168.11.255",15);//192.168.223.255, 192.168.0.255
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
@@ -147,17 +147,18 @@ public class NewSocket extends JFrame {
         accept_Button_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
+                
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
-                tcp_accepter.startServer();
-                consoleArea.append("TCP 소켓 연결 대기 중...\n");
-                System.out.println("Waiting for TCP");
+                tcp_accepter.startServer(receivedMessagesArea);
+                consoleArea.append("TCP 소켓 연결완료 \n");
+                System.out.println("TCP Socket is connnected");
             }
         });
 
         sendButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+            	//receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
                 if (udpTimer != null) {
                     udpTimer.cancel();  // 타이머 중지 (이전에 동작 중이었다면)
                 }
@@ -178,15 +179,16 @@ public class NewSocket extends JFrame {
                             receiver_tcp.resetNewEchoMessageFlag();
                             return; // 전송 중지 후 종료
                         }
-                        sender_udp.startClient(serverIP);  // 50ms마다 UDP 메시지 전송
+                        sentMessageCount++; // 전송 메시지 카운트 증가
+                        sender_udp.startClient(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
                         
                         // sendMessageArea에 보내는 메시지 추가
-                        sentMessageCount++; // 전송 메시지 카운트 증가
+                        
                         sendMessageArea.append("[" + sentMessageCount + "] UDP로 전송된 메시지: 'A' * 30 bytes\n");
                         
                         consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
                     }
-                }, 0, 2000); // 2s 간격으로 실행
+                }, 0, 50); // 50ms 간격으로 실행
             }
         });
         // UDP 전송 중지 버튼

@@ -10,7 +10,7 @@ public class ReceiverViewModelUdp {
     private static final int PORT = 1996;
     private static final int BUFFER_SIZE = 1024;
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
-    private static int receive_massage_num = 0;
+    private static int receive_message_num = 0;
     private volatile boolean newMessageReceived_udp = false;
     
     // 생성자에서 JTextArea 전달 받음
@@ -18,8 +18,8 @@ public class ReceiverViewModelUdp {
         this.receivedMessagesArea = receivedMessagesArea;
     }
     
-    public void reset_message_num() { // 창을 clear 하면 meaage
-    	receive_massage_num = 0;
+    public void reset_message_num() { // 창을 clear 하면 message num clear
+    	receive_message_num = 0;
     }
     
     public boolean hasNewMessage() {
@@ -63,8 +63,8 @@ public class ReceiverViewModelUdp {
                             : receivedMessage;
 
                     // 수신 메시지 GUI에 표시
-                    receive_massage_num ++;
-                    receivedMessagesArea.append("["+receive_massage_num+"]수신된 메시지 from " + clientIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
+                    receive_message_num ++;
+                    receivedMessagesArea.append("["+receive_message_num+"]수신된 메시지 from " + clientIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
                     System.out.println("I got Message : " + truncatedMessage );
                     
                     if(receivePacket != null) newMessageReceived_udp = true; //새로운 메시지 받았을 경우

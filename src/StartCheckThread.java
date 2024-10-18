@@ -1,13 +1,13 @@
 public class StartCheckThread implements Runnable {
     private final ReceiverViewModelUdp receiver_udp;
     private final TcpSocketConnection tcpConnection;
-    private final ReceiverViewModel receiver_tcp;
+    private final Server_Tcp receiver_tcp;
     /*
      * UDP 메시지를 수신했을 때 TCP의 에코메시지를 송신하는 스레 
      * 
      * */
     
-    public StartCheckThread(ReceiverViewModelUdp receiver_udp,ReceiverViewModel receiver_tcp,TcpSocketConnection tcpConnection) {
+    public StartCheckThread(ReceiverViewModelUdp receiver_udp,Server_Tcp receiver_tcp,TcpSocketConnection tcpConnection) {
         this.receiver_udp = receiver_udp;
         this.tcpConnection = tcpConnection;
         this.receiver_tcp = receiver_tcp;
@@ -36,7 +36,7 @@ public class StartCheckThread implements Runnable {
             	
             
             try {
-                Thread.sleep(50); // 50ms마다 수신 여부를 확인 
+                Thread.sleep(1); // 1ms마다 수신 여부를 확인 또는 notify()사용?
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
