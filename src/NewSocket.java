@@ -18,7 +18,7 @@ public class NewSocket extends JFrame {
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    private ReceiverViewModel receiver_tcp;
+    private Server_Tcp receiver_tcp;
     private ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
     private SenderViewModelUdp sender_udp;
@@ -93,8 +93,8 @@ public class NewSocket extends JFrame {
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
-        inputIp = new JTextField("192.167.11.36", 15);
-        inputIp_udpBroad = new JTextField("192.167.11.255",15);
+        inputIp = new JTextField("192.168.11.36", 15); //192.168.0.228
+        inputIp_udpBroad = new JTextField("192.168.11.255",15);
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
@@ -150,7 +150,7 @@ public class NewSocket extends JFrame {
                 receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
                 tcp_accepter.startServer();
-                consoleArea.append("TCP 소켓 연결 대기 중...\n");
+                consoleArea.append("TCP 소켓 연결 완료\n");
                 System.out.println("Waiting for TCP");
             }
         });
