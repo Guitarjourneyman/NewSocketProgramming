@@ -14,7 +14,7 @@ public class ReceiverViewModelUdp {
     private static int receive_message_num = 0;
     private volatile boolean newMessageReceived_udp = false;
     public int receivedMessageNum; 
-    private static int checkSerial;
+    private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
     
     //받은 UDP 메시지가 몇 번째 메시지인지 저장하고 있는 checkSerial 변수를 출력하는 메소드
     public int Print_checkSerial() {
