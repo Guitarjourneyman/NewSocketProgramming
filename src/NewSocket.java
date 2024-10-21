@@ -18,19 +18,15 @@ public class NewSocket extends JFrame {
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    
-    
+    private Server_Tcp server_tcp;
     private ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
     private SenderViewModelUdp sender_udp;
-    private TcpConnectionAccepter tcp_accepter;
-    
     private JTextField inputIp;
     private JTextField inputIp_udpBroad;
     private int sentMessageCount = 0;       // 전송 메시지 카운터
     private Timer udpTimer;                 // UDP 전송을 위한 타이머
     public static ArrayList<Boolean> clients_tcp;   //에코메시지를 받았는 지 확인하는 이진수배열 
-    public static ArrayList<Integer> clients_receivedEcho;
     public static int clients_tcp_index = 0; // 에코메시지의 배열의 인덱스
     
     
@@ -95,11 +91,10 @@ public class NewSocket extends JFrame {
         sendButton_UDP = new JButton("Send UDP Message");
         accept_Button_TCP = new JButton("Wait for TCP");
         receiveButton_UDP = new JButton("Wait for UDP");
-        sendStopButton_UDP = new JButton("Stop UDP");
-        
+        sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
-        inputIp = new JTextField("172.30.1.76", 15);
-        inputIp_udpBroad = new JTextField("172.30.1.255",15);//192.168.223.255, 192.168.0.255
+        inputIp = new JTextField("172.30.1.26", 15); //192.168.0.228
+        inputIp_udpBroad = new JTextField("192.168.0.255",15);
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
@@ -108,11 +103,9 @@ public class NewSocket extends JFrame {
         buttonPanel.add(inputIp_udpBroad);
         buttonPanel.add(connection_Button_TCP);
         buttonPanel.add(accept_Button_TCP);
-        
         buttonPanel.add(sendButton_UDP);
         buttonPanel.add(receiveButton_UDP);
         buttonPanel.add(sendStopButton_UDP);
-        
 
         // 메인 레이아웃 설정
         setLayout(new BorderLayout());
@@ -154,24 +147,17 @@ public class NewSocket extends JFrame {
         accept_Button_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                
-                tcp_accepter = new TcpConnectionAccepter();
-                tcp_accepter.startServer(receivedMessagesArea);
-                consoleArea.append("TCP 소켓 연결완료 \n");
-                System.out.println("TCP Socket is connnected");
-                
-                
-                
-              
+                server_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
+                TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
+                tcp_accepter.startServer();
+                consoleArea.append("TCP 소켓 연결 완료\n");
+                System.out.println("Waiting for TCP");
             }
         });
-        
-       
-        
+
         sendButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	//receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
                 if (udpTimer != null) {
                     udpTimer.cancel();  // 타이머 중지 (이전에 동작 중이었다면)
                 }
@@ -185,26 +171,22 @@ public class NewSocket extends JFrame {
                     public void run() {
                     	// 주기적으로 클라이언트 응답 체크
                         if (checkAllClientsTrue(clients_tcp)) {
-                            
-                            consoleArea.append("모든 클라이언트로부터 ["+sentMessageCount+ "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");
+                            udpTimer.cancel();  // 모든 클라이언트가 응답했으므로 타이머 중지
+                            consoleArea.append("모든 클라이언트로부터 에코 메시지를 받았으므로 브로드캐스트 중지\n");
                             // 수신 상태 플래그 초기화
-                            setAllClientsFalse(clients_tcp);
-                            
-                            sentMessageCount++; // 전송 메시지 카운트 증가
-                            
+                            receiver_udp.resetNewMessageFlag();
+                            server_tcp.resetNewEchoMessageFlag();
                             return; // 전송 중지 후 종료
                         }
-                        if(sentMessageCount == 0 ) sentMessageCount++; 
-                        
-                        sender_udp.startClient(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
+                        sender_udp.startClient(serverIP);  // 50ms마다 UDP 메시지 전송
                         
                         // sendMessageArea에 보내는 메시지 추가
-                        
+                        sentMessageCount++; // 전송 메시지 카운트 증가
                         sendMessageArea.append("[" + sentMessageCount + "] UDP로 전송된 메시지: 'A' * 30 bytes\n");
                         
                         consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
                     }
-                }, 0, 1000); // 1000ms 간격으로 실행
+                }, 0, 2000); // 2s 간격으로 실행
             }
         });
         // UDP 전송 중지 버튼
@@ -224,7 +206,10 @@ public class NewSocket extends JFrame {
                 receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);  // receivedMessagesArea 전달
                 new Thread(() -> receiver_udp.startServer()).start();
                 consoleArea.append("UDP 수신 대기 중...\n");
-                
+                //UDP Broad메시지를 수신하였지 체크하는 스레드 생성 
+                StartCheckThread udpCheckThread = new StartCheckThread(receiver_udp,server_tcp ,tcp_connection);
+                Thread udpCheck = new Thread(udpCheckThread);
+                udpCheck.start();
             }
         });
     }
@@ -240,12 +225,6 @@ public class NewSocket extends JFrame {
     	}
     	return true;
     }
-    public static void setAllClientsFalse(ArrayList<Boolean> booleanList) {
-        for (int i = 0; i < booleanList.size(); i++) {
-            booleanList.set(i, false);
-        }
-    }
-
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
