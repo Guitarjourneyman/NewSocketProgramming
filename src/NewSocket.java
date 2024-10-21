@@ -18,7 +18,7 @@ public class NewSocket extends JFrame {
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    private Server_Tcp receiver_tcp;
+    
     private ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
     private SenderViewModelUdp sender_udp;
@@ -95,7 +95,7 @@ public class NewSocket extends JFrame {
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
         inputIp = new JTextField("172.30.1.76", 15);
-        inputIp_udpBroad = new JTextField("192.167.11.255",15);//192.168.223.255, 192.168.0.255
+        inputIp_udpBroad = new JTextField("192.168.223.255",15);//192.168.223.255, 192.168.0.255
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
@@ -187,11 +187,11 @@ public class NewSocket extends JFrame {
                         
                         // sendMessageArea에 보내는 메시지 추가
                         sentMessageCount_actual++;
-                        sendMessageArea.append("[" + sentMessageCount_actual + "] UDP로 전송된 메시지: 'A' * 30 bytes\n");
+                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] UDP로 전송된 메시지: 'A' * 1400 bytes\n");
                         
                         consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
                     }
-                }, 0, 1000); // 1000ms 간격으로 실행
+                }, 0, 50); // 50ms 간격으로 실행
             }
         });
         // UDP 전송 중지 버튼
