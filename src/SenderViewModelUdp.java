@@ -5,7 +5,7 @@ import java.net.InetAddress;
 public class SenderViewModelUdp {
     private static final int PORT = 1996;
 
-    public void startClient(String serverIP, int messageNum) {
+    public void startSend(String serverIP, int messageNum) {
         DatagramSocket socket = null;
 
         try {

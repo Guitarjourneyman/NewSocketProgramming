@@ -47,7 +47,12 @@ public class Server_Tcp {
             	receive_message_num++;
 				receivedMessagesArea.append("["+receive_message_num+"]수신된 메시지 from " + clientIP + ": " + receivedMessage + "\n");
 				System.out.println("수신된 메시지 from " + clientIP + ": " + receivedMessage);
-				newEchoReceived_tcp = true;
+				synchronized(this){
+					newEchoReceived_tcp = true; //에코메시지를 받았을 경우
+					System.out.println("newEchoMessage was coming");
+					notifyAll();
+				}
+				
 
 				
             }
