@@ -18,7 +18,7 @@ public class TcpConnectionAccepter {
             // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성
             // 클라이언트 최대 개수 설정
             
-            while (NewSocket.clients_tcp_index <= 2) {
+            while (NewSocket.clients_tcp_index <= 1) {
                 Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
                 System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
 
