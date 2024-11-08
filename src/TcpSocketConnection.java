@@ -10,13 +10,11 @@ public class TcpSocketConnection {
     
     public void startClient(String serverIP) {
         try {
+        	
             socket = new Socket(serverIP, PORT);
-            client = new Client_Tcp(socket);
-            
-            
+            client = new Client_Tcp(socket);                        
             System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
-            
-            
+                        
             
         } catch (IOException e) {
             e.printStackTrace();

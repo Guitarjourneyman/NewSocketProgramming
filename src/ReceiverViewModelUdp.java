@@ -163,7 +163,7 @@ public class ReceiverViewModelUdp {
         DatagramSocket socket = null;
         try {
             socket = new DatagramSocket(PORT);
-            System.out.println("UDP Server started on port " + PORT + ". Waiting for connect to tcp...");
+            System.out.println("UDP Server started on port " + PORT );
             
             // 버퍼 생성
             byte[] buffer = new byte[BUFFER_SIZE];
