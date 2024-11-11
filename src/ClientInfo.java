@@ -63,7 +63,12 @@ class TcpConnectionManager {
 
     // Method to retrieve a client's information by index
     public static ClientInfo getClient(int index) {
-        return clients_tcp.get(index);
+        if (index >=0 && index < clients_tcp.size()) {
+        	return clients_tcp.get(index);
+        }else {
+        	//인덱스의 범위를 벗어날 경우 예외처리 또는 null 반환
+        	throw new IndexOutOfBoundsException("Invalid index: " + index);
+        }
     }
     
     public boolean checkAllClientsNewMessage() {
@@ -81,6 +86,10 @@ class TcpConnectionManager {
     		if(client.getConnected()) //연결되어 있는 클라이언트만 한하여 새로운메시지에대한 boolean false로 초기화
     		client.setNewMsg(false);
     	}
+    }
+    
+    public void AllClientsReset() {
+    	clients_tcp.clear();
     }
 
 }
