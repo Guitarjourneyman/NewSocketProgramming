@@ -48,7 +48,7 @@ public class NewSocket extends JFrame {
     	tcpconnectionmanager = new TcpConnectionManager();
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast - newServer + Reset");
+        setTitle("P2P UCP Broadcast - newServer_v4_241114 Fetching");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -257,24 +257,22 @@ public class NewSocket extends JFrame {
                     	// 주기적으로 클라이언트 응답 체크
                     	
                         if (tcpconnectionmanager.checkAllClientsNewMessage()) {
-                            
-                            consoleArea.append("모든 클라이언트로부터 "+"[" + sentMessageCount + "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");
-                            sentMessageCount++; // 전송 메시지 카운트 증가
-                            
+                        	
+                            consoleArea.append("모든 클라이언트로부터 "+"[" + sentMessageCount + "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");                            
                             tcpconnectionmanager.AllClientsSetFalse(); //에코메시지 수신여부 초기화 
-
+                            sentMessageCount++; // 전송 메시지 카운트 증가
                             return; // 전송 중지 후 종료
                         }
                        if (sentMessageCount == 0) sentMessageCount++; // 첫 메시지 발송때만 카운트 증가 
                        
                        
-                        sender_udp.startSend(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
+                        sender_udp.startSend(serverIP,sentMessageCount,61440);   // 50ms마다 UDP 메시지 전송
                         
                         // sendMessageArea에 보내는 메시지 추가
                         sentMessageCount_actual++;
-                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] UDP로 전송된 메시지: 'A' * 1400 bytes\n");
+                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] message via UDP: 'A' * 61440 bytes\n");
                         
-                        consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
+                        //consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
                     }
                 }, 0, 50); // 50ms 간격으로 실행
             }

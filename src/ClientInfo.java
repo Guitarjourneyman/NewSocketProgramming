@@ -70,9 +70,21 @@ class TcpConnectionManager {
         	throw new IndexOutOfBoundsException("Invalid index: " + index);
         }
     }
+ // Method to retrieve the index of a specific client in the list
+    public static int getIndex(ClientInfo client) {
+        int index = clients_tcp.indexOf(client); // ArrayList의 indexOf 메소드를 사용
+        if (index != -1) {
+            return index; // 유효한 인덱스를 반환
+        } else {
+            throw new IllegalArgumentException("Client not found in the list.");
+        }
+    }
+
     
     public boolean checkAllClientsNewMessage() {
+    	
         for (ClientInfo client : clients_tcp) {
+        	
             if (!client.getNewMsg()) {  // 연결되지 않은 클라이언트가 있으면 false 반환
                 return false;
             }

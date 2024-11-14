@@ -100,7 +100,7 @@ public class TcpConnectionAccepter implements Runnable {
         private Socket clientSocket;
         private boolean running = true; // Socket이 열려있는지 나타내는 변수
         
-        private StartTCPCheck tcpCheckThread;
+        private StartTCPCheck tcpCheck;
         
         
         public ClientHandler(Socket clientSocket, TcpConnectionAccepter tcpAccepter, JTextArea receivedMessagesArea) {
@@ -111,12 +111,12 @@ public class TcpConnectionAccepter implements Runnable {
                 if (NewSocket.clients_tcp_index == 0) {
                     permanent_id = NewSocket.clients_tcp_index;
                     System.out.println("Client index 0 is added");
-                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
+                    //TcpConnectionManager.setClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
                     NewSocket.clients_tcp_index++;
                 } else {
                     permanent_id = NewSocket.clients_tcp_index;
                     System.out.println("Client index: "+permanent_id+ " is added");
-                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
+                    //TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
                     NewSocket.clients_tcp_index++;
                 }
                 System.out.println("Client: " + clientSocket.getInetAddress() + " is connected by TCP"
@@ -128,21 +128,13 @@ public class TcpConnectionAccepter implements Runnable {
 
         @Override
         public void run() {
+        	
             try {
-               
+            	
                 // TCP Ack 수신  시작
                 receiverTcp.startReceiving();
 
-                // Check for socket status in a loop
-                while (running) {
-                    if (clientSocket.isClosed() || !clientSocket.isConnected()) {
-                        System.out.println("Client socket is closed or disconnected. Stopping handler for client: " + clientSocket.getInetAddress());
-                        break; // Exit the loop if the socket is closed or disconnected
-                    }
-
-                    // 스레드 복잡도를 낮추기위해 1초마다 검사
-                    Thread.sleep(1000);
-                }
+                
                 
             }catch (IOException e) {
                 System.out.println("IOException in ClientHandler: " + e.getMessage());
@@ -157,6 +149,9 @@ public class TcpConnectionAccepter implements Runnable {
                 stopTCPCheckThread();
                 stopHandler();
             }
+            
+            
+            
         }
 
         // ClientHandler 스레드를 종료하는 메소드 
@@ -175,7 +170,7 @@ public class TcpConnectionAccepter implements Runnable {
         }
         public void stopTCPCheckThread() {
 
-        	tcpCheckThread.stopChecking();
+        	tcpCheck.stopChecking();
         }
     }
 
