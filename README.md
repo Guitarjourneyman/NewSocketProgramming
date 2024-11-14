@@ -1,2 +1,5 @@
 # NewSocketProgramming 
-Collaboration with UDP and TCP on Side of ReceiverUDP by ClientTCP
+
+# Udate
+1. Organized Thread
+2. Using byte Array by Ack
