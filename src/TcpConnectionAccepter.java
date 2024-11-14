@@ -51,8 +51,7 @@ public class TcpConnectionAccepter implements Runnable {
                 	
                 
             }
-            //consoleArea.append("TCP 소켓 연결완료 \n");
-            //System.out.println("All TCP Sockets are connnected");
+           
             
             
         

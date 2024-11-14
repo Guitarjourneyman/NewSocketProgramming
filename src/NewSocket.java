@@ -37,7 +37,7 @@ public class NewSocket extends JFrame {
     private Timer udpTimer;// UDP 전송을 위한 타이머
     private Thread accepterThread;
     
-    //public static ArrayList<Boolean> clients_tcp;   //에코메시지를 받았는 지 확인하는 이진수배열
+    
     public static TcpConnectionManager tcpconnectionmanager;
     public static int clients_tcp_index = 0; // 에코메시지의 배열의 인덱스
     
@@ -332,15 +332,7 @@ public class NewSocket extends JFrame {
         
     }
     
-    /*
-    public static boolean checkAllClientsTrue(ArrayList<Boolean> booleanlist) {
-    	for (Boolean value: booleanlist) {
-    		if(!value) return false; //하나라도 false가 있으면 false 변
-    	}
-    	System.out.println("Every Client is set true ");    	
-    	return true;
-    }*/
-    
+   
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
