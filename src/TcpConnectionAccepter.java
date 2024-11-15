@@ -97,9 +97,7 @@ public class TcpConnectionAccepter implements Runnable {
     public class ClientHandler implements Runnable {
         private final Server_Tcp receiverTcp;
         public int permanent_id;
-        private Socket clientSocket;
-        private boolean running = true; // Socket이 열려있는지 나타내는 변수
-        
+        private Socket clientSocket;            
         private StartTCPCheck tcpCheck;
         
         
@@ -137,16 +135,16 @@ public class TcpConnectionAccepter implements Runnable {
                 
                 
             }catch (IOException e) {
-                System.out.println("IOException in ClientHandler: " + e.getMessage());
+                System.out.println("IOException in ClientHandler: " + clientSocket.getInetAddress().getHostAddress() );
                 e.printStackTrace();
             } catch (Exception e) {
-                System.out.println("Exception in ClientHandler: " + e.getMessage());
+                System.out.println("Exception in ClientHandler: " + clientSocket.getInetAddress().getHostAddress());
                 e.printStackTrace();
                 
             } finally {
                 // while문을 빠져나오면 Handler를 종료함
                 
-                stopTCPCheckThread();
+                stopTCPCheck();
                 stopHandler();
             }
             
@@ -156,7 +154,7 @@ public class TcpConnectionAccepter implements Runnable {
 
         // ClientHandler 스레드를 종료하는 메소드 
         public void stopHandler() {
-            running = false;
+            
             try {
                 if (clientSocket != null && !clientSocket.isClosed()) {
                     clientSocket.close();
@@ -168,7 +166,7 @@ public class TcpConnectionAccepter implements Runnable {
                 System.out.println("Error closing client socket: " + e.getMessage());
             } 
         }
-        public void stopTCPCheckThread() {
+        public void stopTCPCheck() {
 
         	tcpCheck.stopChecking();
         }

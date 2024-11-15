@@ -49,7 +49,7 @@ public class NewSocket extends JFrame {
     	
         // GUI 기본 설정
         setTitle("P2P UCP Broadcast - newServer_v4_241114 Fetching");
-        setSize(1300, 600); // 크기를 조금 더 늘려줌
+        setSize(1300, 800); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -58,6 +58,8 @@ public class NewSocket extends JFrame {
         receivedMessagesArea.setEditable(false);
         receivedMessagesArea.setLineWrap(true);
         receivedMessagesArea.setWrapStyleWord(true);
+        
+
         JScrollPane receivedScrollPane = new JScrollPane(receivedMessagesArea);
         receivedScrollPane.setBorder(BorderFactory.createTitledBorder("Received Messages"));
 
@@ -97,6 +99,7 @@ public class NewSocket extends JFrame {
         consoleArea.setWrapStyleWord(true);
         JScrollPane consoleScrollPane = new JScrollPane(consoleArea);
         consoleScrollPane.setBorder(BorderFactory.createTitledBorder("Console"));
+        consoleScrollPane.setPreferredSize(new Dimension(1000, 150)); // 전송 패널 크기 줄이기
 
         // 버튼 생성
         connection_Button = new JButton("Connection");
@@ -163,17 +166,19 @@ public class NewSocket extends JFrame {
         JPanel receivedPanel = new JPanel(new BorderLayout());
         receivedPanel.add(receivedScrollPane, BorderLayout.CENTER);
         receivedPanel.add(clearReceiveButton, BorderLayout.SOUTH);
-
+        receivedPanel.setPreferredSize(new Dimension(1000, 400)); // 수신 패널 크기 늘리기
+        
         // 전송 메시지 + Clear 버튼을 위한 패널
         JPanel sendPanel = new JPanel(new BorderLayout());
         sendPanel.add(sendScrollPane, BorderLayout.CENTER);
         sendPanel.add(clearSendButton, BorderLayout.SOUTH);
-
+        sendPanel.setPreferredSize(new Dimension(1000, 150)); // 전송 패널 크기 줄이기
+        
         // Center Panel: 모든 창을 동일한 크기로 설정하기 위한 GridLayout
-        JPanel centerPanel = new JPanel(new GridLayout(3, 1));  // 3 rows, 1 column
-        centerPanel.add(receivedPanel);  // 수신 메시지 창 + Clear 버튼
-        centerPanel.add(sendPanel);      // 전송 메시지 창 + Clear 버튼
-        centerPanel.add(consoleScrollPane);   // 콘솔 창
+        JPanel centerPanel = new JPanel(new BorderLayout(3, 1));  // 3 rows, 1 column
+        centerPanel.add(receivedPanel,BorderLayout.NORTH);  // 수신 메시지 창 + Clear 버튼        
+        centerPanel.add(sendPanel,BorderLayout.CENTER);      // 전송 메시지 창 + Clear 버튼
+        centerPanel.add(consoleScrollPane,BorderLayout.SOUTH);   // 콘솔 창
 
         add(centerPanel, BorderLayout.CENTER);      // 중앙에 3개의 창을 같은 크기로 배치
         add(buttonPanel_main, BorderLayout.SOUTH);        // 하단에 버튼 패널 배치
@@ -310,20 +315,22 @@ public class NewSocket extends JFrame {
                   //tcp_accepter null로 초기화 후 모든 메세지 창 초기화
                     tcp_accepter = null;
             	}
-            	
-                //System.out.println("Reset Program completed 2");
+            	System.out.println("TcpConnectionAccepter sets null");
+                
                 consoleArea.setText("Reset Program");
                 receivedMessagesArea.setText("");
                 sendMessageArea.setText("");
                 //Client 초기화
                 tcpconnectionmanager.AllClientsReset();
                 clients_tcp_index = 0;
-                System.out.println("TcpConnectionAccepter sets null");
+                
                 //Udp sender 초기화
                 if(udpTimer != null&& udpTimer_IP != null) {
                 	udpTimer = null;
                     udpTimer_IP = null;
                 }
+                // message number 초기화
+                sentMessageCount = 0;
                 
             }
         });
