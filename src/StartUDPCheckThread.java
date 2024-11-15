@@ -17,10 +17,10 @@ public class StartUDPCheckThread implements Runnable {
 
                 if(!Arrays.equals(receiver_udp.checkNewMessage, receiver_udp.lastMessage)) { // checkNewMessage 배열에 변화가 생겼을 때만 ack 전송
                 	
-                	System.out.println( "Array changed");
+                	
                 	//byte배열만 Ack메시지로 보내게된다. sendAckMessage는 재정의되어있음
                 	tcpConnection.sendAckMessage(receiver_udp.checkNewMessage);
-                	System.out.println( "SendAck:");               
+                	             
                 	printByteArrayAsBinary(receiver_udp.checkNewMessage); // 보낸 ack내용 출력           	
 
                 	// 배열의 모든 비트가 1인지 확인
@@ -48,16 +48,13 @@ public class StartUDPCheckThread implements Runnable {
                 	// 배열의 내용을 복사하여 lastMessage에 저장
                 	receiver_udp.lastMessage = Arrays.copyOf(receiver_udp.checkNewMessage, receiver_udp.checkNewMessage.length);
                 
-                	System.out.println( " is transmitted");
-                	System.out.println("(1) UDP Message state: " + receiver_udp.hasNewMessage());
-
+                
                 	// 플래그 초기화
                 	receiver_udp.resetNewMessageFlag();
-                	System.out.println("(2) UDP Message state: " + receiver_udp.hasNewMessage());
+                	
                 
                 }
-                else
-                	System.out.println( "Array unchanged");
+                
                 // 설정한 시간 동안 대기
                 long interval = 50;
                 

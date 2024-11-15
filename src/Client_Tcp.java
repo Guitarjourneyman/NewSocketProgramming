@@ -8,6 +8,9 @@ public class Client_Tcp {
     private Socket socket;
     private PrintWriter out = null;
     private DataOutputStream dataOutputStream = null;
+    private BufferedReader in = null; // 수신용 BufferedReader 추가
+    private DataInputStream dataInputStream = null; // 바이트 수신용 DataInputStream 추가
+    
     // Socket을 파라미터로 받는 생성자
     public Client_Tcp(Socket socket) {
         this.socket = socket;
@@ -16,6 +19,14 @@ public class Client_Tcp {
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
             // byteArray를 위해 추가함
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            
+            /*Reset을 위한 tcp 수신*/
+            // 수신 스트림 초기화
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            dataInputStream = new DataInputStream(socket.getInputStream());
+            // 수신 스레드 시작
+            startResetReceiving();
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -69,5 +80,25 @@ public class Client_Tcp {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+ // 메시지 수신을 위한 스레드 시작 메서드
+    private void startResetReceiving() {
+        Thread receiveResetThread = new Thread(() -> {
+            try {
+                String message;
+                while ((message = in.readLine()) != null) { // EOF를 확인하며 수신
+                    System.out.println("Received message: " + message);
+                }
+                System.out.println("Server closed the connection.");
+                //Message num 초기화
+                ReceiverViewModelUdp.receivedMessageNum =1;
+                NewSocket.receiver_udp.resetUDPreceiving();
+                NewSocket.receiver_udp = null;
+            } catch (IOException e) {
+                System.out.println("Connection closed.");
+            }
+        });
+        receiveResetThread.start();
     }
 }

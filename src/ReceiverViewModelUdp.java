@@ -22,6 +22,8 @@ public class ReceiverViewModelUdp {
     public static int ignored_bits = 0;
     private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
     
+    private DatagramSocket socket;
+    
     public byte[] checkNewMessage; // 받은 패킷을 체크하는 배열
     public byte[] lastMessage; // 이전 배열(배열에 변화가 생겼을 때만 ack 전송)
     
@@ -79,7 +81,7 @@ public class ReceiverViewModelUdp {
 
 
     public void startServer() {
-        DatagramSocket socket = null;
+        socket = null;
         array_index = calculateBits(TOTAL_PACKETS, 0);
         ignored_bits = calculateBits(TOTAL_PACKETS, 1);
         //패킷 수에 맞는 배열 생성
@@ -236,6 +238,11 @@ public class ReceiverViewModelUdp {
                 System.out.println("checkNewMessage[" + packet_num + "] is already set to 1.");
               }
            }
+    
+    //Server에서 Reset 요청이 올 때
+    public void resetUDPreceiving() {
+    	socket.close();
+    }
   }            
         
 
