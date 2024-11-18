@@ -5,7 +5,7 @@ import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.ArrayList;
+
 
 public class NewSocket extends JFrame {
 
@@ -30,14 +30,14 @@ public class NewSocket extends JFrame {
     private JTextField inputIp;
     private JTextField inputIp_udpBroad;
     
-    private int sentMessageCount = 0;       // 메시지의 번호 
-    private int sentMessageCount_actual = 0; //실제 전송 메시지 카운
+   private int sentMessageCount = 0;       // 메시지의 번호 
+   private int sentMessageCount_actual = 0; //실제 전송 메시지 카운
     
     private Timer udpTimer_IP; //SETUP 과정을 위한 UDP broadcast를 위한 타이머
-    private Timer udpTimer;// UDP 전송을 위한 타이머
+    private Thread senderThread;// UDP 전송을 위한 타이머
     private Thread accepterThread;
     
-    //public static ArrayList<Boolean> clients_tcp;   //에코메시지를 받았는 지 확인하는 이진수배열
+    
     public static TcpConnectionManager tcpconnectionmanager;
     public static int clients_tcp_index = 0; // 에코메시지의 배열의 인덱스
     
@@ -48,7 +48,7 @@ public class NewSocket extends JFrame {
     	tcpconnectionmanager = new TcpConnectionManager();
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast - newServer + Reset");
+        setTitle("P2P UCP Broadcast - newServer_v4_241118 Fetching");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -243,49 +243,30 @@ public class NewSocket extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
             	//receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
-                if (udpTimer != null) {
-                    udpTimer.cancel();  // 타이머 중지 (이전에 동작 중이었다면)
+                
+                String serverIP = inputIp_udpBroad.getText();
+                if(sender_udp == null && senderThread == null) {
+                	sender_udp = new SenderViewModelUdp(serverIP,sendMessageArea,consoleArea,61440);
+                    //sender_udp 스레드화
+                    senderThread = new Thread(sender_udp);
+                    senderThread.start();
+                }
+                else {
+                	consoleArea.append("UDP 메시지 이미 송신 중..\n");
                 }
                 
-                sender_udp = new SenderViewModelUdp();
-                String serverIP = inputIp_udpBroad.getText();
-
-                udpTimer = new Timer();
-                udpTimer.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                    	// 주기적으로 클라이언트 응답 체크
-                    	
-                        if (tcpconnectionmanager.checkAllClientsNewMessage()) {
-                            
-                            consoleArea.append("모든 클라이언트로부터 "+"[" + sentMessageCount + "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");
-                            sentMessageCount++; // 전송 메시지 카운트 증가
-                            
-                            tcpconnectionmanager.AllClientsSetFalse(); //에코메시지 수신여부 초기화 
-
-                            return; // 전송 중지 후 종료
-                        }
-                       if (sentMessageCount == 0) sentMessageCount++; // 첫 메시지 발송때만 카운트 증가 
-                       
-                       
-                        sender_udp.startSend(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
-                        
-                        // sendMessageArea에 보내는 메시지 추가
-                        sentMessageCount_actual++;
-                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] UDP로 전송된 메시지: 'A' * 1400 bytes\n");
-                        
-                        consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
-                    }
-                }, 0, 50); // 50ms 간격으로 실행
+                
+  
             }
         });
         // UDP 전송 중지 버튼
         sendStopButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (udpTimer != null) {
-                    udpTimer.cancel();  // 타이머 중지
-                    udpTimer = null;    // 타이머 객체를 null로 설정하여 상태 초기화
+                if (sender_udp != null) {
+                	senderThread.interrupt();  // 타이머 중지
+                    senderThread = null;    // 타이머 객체를 null로 설정하여 상태 초기화
+                    sender_udp = null;
                     consoleArea.append("UDP 메시지 전송이 중지되었습니다.\n");
                 }
             }
@@ -322,9 +303,9 @@ public class NewSocket extends JFrame {
                 clients_tcp_index = 0;
                 System.out.println("TcpConnectionAccepter sets null");
                 //Udp sender 초기화
-                if(udpTimer != null&& udpTimer_IP != null) {
-                	udpTimer = null;
-                    udpTimer_IP = null;
+                if(senderThread != null&& sender_udp != null) {
+                	senderThread = null;
+                    sender_udp = null;
                 }
                 
             }
@@ -332,15 +313,7 @@ public class NewSocket extends JFrame {
         
     }
     
-    /*
-    public static boolean checkAllClientsTrue(ArrayList<Boolean> booleanlist) {
-    	for (Boolean value: booleanlist) {
-    		if(!value) return false; //하나라도 false가 있으면 false 변
-    	}
-    	System.out.println("Every Client is set true ");    	
-    	return true;
-    }*/
-    
+   
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
