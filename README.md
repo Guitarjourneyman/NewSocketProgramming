@@ -1,8 +1,7 @@
-## NewSocketProgramming
-Collaboration with UDP and TCP
-# Main branch
-Connect multiple clients each PORT but ack message is sent in the same PORT number.
+# NewSocketProgramming - newClinent_v4 241114
 
-# Select proper branch you need
-1. Receiver UDP + Client TCP
-2. Sender UDP + Server TCP
+# Update
+1. Organized Thread
+2. Using byte Array by Ack
+3. Organized some unused Phrases
+4. Resposed by Server Reset
