@@ -38,15 +38,16 @@ public class StartTCPCheckThread implements Runnable {
             }
         }
     
-    public void stopThread() {
+    public void killThread() {
     	//해당 인덱스를 true로 고정하여 상관없이 프로그램이 작동하도록함
     	
     	 //인덱스 번호에 해당하는 client클래스 배열 호출 후 연결상태 false, 새로운 메시지 true 고정
+    	runningFlag = false; 
         ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
         System.out.println("Client : "+clientinfo.getIp()+" is disconnected");
         clientinfo.setNewMsg(true);
     	clientinfo.setConnected(false);
-    	runningFlag = false;    	
+    	   	
     }
     
 }

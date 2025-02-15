@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.ClosedByInterruptException;
-
+import java.util.ArrayList;
 import javax.swing.JTextArea;
 
 public class TcpConnectionAccepter implements Runnable {
@@ -11,7 +11,11 @@ public class TcpConnectionAccepter implements Runnable {
     
     private JTextArea receivedMessagesArea;
     private JTextArea consoleArea;
-
+    private Thread clientHandlerThread;
+    
+    // 모든 ClientHandler 인스턴스를 저장할 리스트 -> ClientInfo에 clientHandler를 넣는게 나을 듯
+    private final ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    
     public TcpConnectionAccepter(JTextArea receivedMessagesArea, JTextArea consoleArea) {
         this.receivedMessagesArea = receivedMessagesArea;
         this.consoleArea = consoleArea;
@@ -25,9 +29,9 @@ public class TcpConnectionAccepter implements Runnable {
             System.out.println("Waiting for connection...");
 
             // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성
-            // 클라이언트 최대 개수 설정
             
-            while (true) {
+            
+            while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
                 
                 /*UDP broad로 Server쪽 IP 전송하는 매커니즘 추가*/
@@ -36,18 +40,62 @@ public class TcpConnectionAccepter implements Runnable {
                 consoleArea.append("Client connected: " + clientIP+"\n");
               
                 // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
+                TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);                
                 ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
-                new Thread(clientHandler).start();
+                //clientHandler객체를 담아두는 리스트 생성 -> 모든 객체를 반납하기위해서 만듦
+                clientHandlers.add(clientHandler);
+                clientHandlerThread = new Thread(clientHandler);
+                clientHandlerThread.start();
+                
+                
+                	
+                
             }
             //consoleArea.append("TCP 소켓 연결완료 \n");
             //System.out.println("All TCP Sockets are connnected");
-
+            
+            
+        
         } catch (IOException e) {
+        	if(Thread.currentThread().isInterrupted()) {
+            	//Interrupt가 발생하면 while문 종료
+            	//스레드가 죽기전 모든 clientHandler를 종료시킨다.
+            	System.out.println("Program is clear by Thread Interruption");
+            	killAllClientHandlers();  
+            	
+            	
+            }
+            e.printStackTrace();            
+        }
+        
+    }
+ // 모든 ClientHandler의 stopHandler를 호출하여 종료
+    private void killAllClientHandlers() {
+        for (ClientHandler handler : clientHandlers) {
+        	System.out.println("Handler of index "+ handler.permanent_id + " is killed");
+            handler.stopHandler();
+        }
+        clientHandlers.clear(); // 리스트를 비워줌
+    }
+    
+    
+    public void closeTcpSocket() {
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+                System.out.println("TCP socket closed successfully.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error closing TCP socket: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public class ClientHandler implements Runnable {
+    
+    
+    
+
+    public class ClientHandler implements Runnable  {
         private final Server_Tcp receiverTcp;
         public int permanent_id;
         private Socket clientSocket;
@@ -56,7 +104,7 @@ public class TcpConnectionAccepter implements Runnable {
         private StartTCPCheckThread tcpCheckThread;
         private Thread checkThread;
         
-        public ClientHandler(Socket clientSocket, TcpConnectionAccepter tcpAccepter, JTextArea receivedMessagesArea) {
+        public ClientHandler (Socket clientSocket, TcpConnectionAccepter tcpAccepter, JTextArea receivedMessagesArea) {
             this.clientSocket = clientSocket;
 
             // 인덱스를 설정하고, 연결된 클라이언트를 처리할 수 있도록 설정
@@ -64,12 +112,12 @@ public class TcpConnectionAccepter implements Runnable {
                 if (NewSocket.clients_tcp_index == 0) {
                     permanent_id = NewSocket.clients_tcp_index;
                     System.out.println("Client index 0 is added");
-                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
+                    
                     NewSocket.clients_tcp_index++;
                 } else {
                     permanent_id = NewSocket.clients_tcp_index;
                     System.out.println("Client index: "+permanent_id+ " is added");
-                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
+                    
                     NewSocket.clients_tcp_index++;
                 }
                 System.out.println("Client: " + clientSocket.getInetAddress() + " is connected by TCP"
@@ -102,8 +150,8 @@ public class TcpConnectionAccepter implements Runnable {
                 }
                 
             }catch (IOException e) {
-                System.out.println("IOException in ClientHandler: " + e.getMessage());
-                e.printStackTrace();
+                System.out.println("IOException in ClientHandler: " );
+                //e.printStackTrace();
             } catch (Exception e) {
                 System.out.println("Exception in ClientHandler: " + e.getMessage());
                 e.printStackTrace();
@@ -120,10 +168,10 @@ public class TcpConnectionAccepter implements Runnable {
         public void stopHandler() {
             running = false;
             try {
-                if (clientSocket != null && !clientSocket.isClosed()) {
+                
                     clientSocket.close();
                     System.out.println("Client socket closed for client: " + clientSocket.getInetAddress());
-                }
+                
             }catch (ClosedByInterruptException e) {
             	System.out.println("Thread ends by Interruption");
             }catch (IOException e) {
@@ -133,7 +181,7 @@ public class TcpConnectionAccepter implements Runnable {
         public void stopTCPCheckThread() {
         	//checkThread.interrupt();
         	//TCPCheckThread를 중단시킴
-        	tcpCheckThread.stopThread();
+        	tcpCheckThread.killThread();
         }
     }
 

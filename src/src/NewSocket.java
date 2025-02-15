@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.InetAddress;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class NewSocket extends JFrame {
     private JButton clearReceiveButton;
     private JButton clearSendButton;
     private JButton stopSetup_Button;
+    private JButton resetProgram;
     
     private ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
@@ -33,6 +35,7 @@ public class NewSocket extends JFrame {
     
     private Timer udpTimer_IP; //SETUP 과정을 위한 UDP broadcast를 위한 타이머
     private Timer udpTimer;// UDP 전송을 위한 타이머
+    private Thread accepterThread;
     
     //public static ArrayList<Boolean> clients_tcp;   //에코메시지를 받았는 지 확인하는 이진수배열
     public static TcpConnectionManager tcpconnectionmanager;
@@ -45,7 +48,7 @@ public class NewSocket extends JFrame {
     	tcpconnectionmanager = new TcpConnectionManager();
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast - Server");
+        setTitle("P2P UCP Broadcast - newServer + Reset");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -102,9 +105,18 @@ public class NewSocket extends JFrame {
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         stopSetup_Button = new JButton("Stop Connection Setup");
+        resetProgram = new JButton("Reset Program");
+        
         // TCP 소켓의 IP 입력 필드
         inputIp = new JTextField("192.168.0.228", 15);
-        inputIp_udpBroad = new JTextField("192.168.0.255",15);//192.168.223.255, 192.168.0.255
+        //자동으로 WifiBroadAddress를 찾는 클래스 실행
+      		InetAddress BroadcastAddress = BroadcastAddressFinder.getWiFiBroadcastAddress();
+      		if (BroadcastAddress != null) {
+      			String BroadIP = BroadcastAddress.getHostAddress();
+      			System.out.println("Found IP: "+ BroadIP);
+      			inputIp_udpBroad = new JTextField(BroadIP,15);//프로그램이 실행되자말자 IP를 읽어들여 Broadcast 주소를 입력해둔다.
+      			
+      		}
        
         
         
@@ -128,17 +140,19 @@ public class NewSocket extends JFrame {
         buttonPanel_2.add(inputIp_udpBroad);
         buttonPanel_main.add(buttonPanel_2);
           
-        buttonPanel_3.add(connection_Button);        
+        //buttonPanel_3.add(connection_Button);        
         buttonPanel_main.add(buttonPanel_3);
         
         buttonPanel_4.add(connectionSetup_Button,BorderLayout.NORTH);
         buttonPanel_4.add(stopSetup_Button,BorderLayout.SOUTH);
         buttonPanel_main.add(buttonPanel_4);
         buttonPanel_5.add(sendButton_UDP,BorderLayout.NORTH);
-        buttonPanel_5.add(receiveButton_UDP,BorderLayout.SOUTH);
+        buttonPanel_5.add(sendStopButton_UDP,BorderLayout.SOUTH);
+        //buttonPanel_5.add(receiveButton_UDP,BorderLayout.SOUTH);
         buttonPanel_main.add(buttonPanel_5);
                
-        buttonPanel_6.add(sendStopButton_UDP);        
+        
+        buttonPanel_6.add(resetProgram);	
         buttonPanel_main.add(buttonPanel_6);
         
 
@@ -187,7 +201,8 @@ public class NewSocket extends JFrame {
             	//수정한 이유: 병렬스레드처리로 하지않으면 socket.accept하는 부분에서 멈추게 된다.
             	if (tcp_accepter == null) {
             		tcp_accepter = new TcpConnectionAccepter(receivedMessagesArea,consoleArea);
-                    new Thread(tcp_accepter).start();
+            		accepterThread = new Thread(tcp_accepter);
+           		 	accepterThread.start();
                     consoleArea.append("TCP Connection Accepter thread started.\n");
             	}
             	else {
@@ -283,6 +298,37 @@ public class NewSocket extends JFrame {
                 
             }
         });
+        
+        
+        resetProgram.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	//Client List에서 모든  Client 객체 삭제
+            	//System.out.println("Reset Program completed 1");
+            	if (tcp_accepter != null) {
+            		tcp_accepter.closeTcpSocket();
+                    accepterThread.interrupt();
+                  //tcp_accepter null로 초기화 후 모든 메세지 창 초기화
+                    tcp_accepter = null;
+            	}
+            	
+                //System.out.println("Reset Program completed 2");
+                consoleArea.setText("Reset Program");
+                receivedMessagesArea.setText("");
+                sendMessageArea.setText("");
+                //Client 초기화
+                tcpconnectionmanager.AllClientsReset();
+                clients_tcp_index = 0;
+                System.out.println("TcpConnectionAccepter sets null");
+                //Udp sender 초기화
+                if(udpTimer != null&& udpTimer_IP != null) {
+                	udpTimer = null;
+                    udpTimer_IP = null;
+                }
+                
+            }
+        });
+        
     }
     
     /*
