@@ -1,12 +1,12 @@
 public class StartUDPCheckThread implements Runnable {
     private final ReceiverViewModelUdp receiver_udp;
     private final TcpSocketConnection tcpConnection;
-    
+    private final Server_Tcp receiver_tcp;
 
-    public StartUDPCheckThread(ReceiverViewModelUdp receiver_udp, TcpSocketConnection tcpConnection) {
+    public StartUDPCheckThread(ReceiverViewModelUdp receiver_udp, Server_Tcp receiver_tcp, TcpSocketConnection tcpConnection) {
         this.receiver_udp = receiver_udp;
         this.tcpConnection = tcpConnection;
-        
+        this.receiver_tcp = receiver_tcp;
     }
 
     @Override
@@ -23,11 +23,8 @@ public class StartUDPCheckThread implements Runnable {
 
                 // 새로운 메시지가 수신된 경우
                 System.out.println("UDP broadcast message is sent");
-                //Ack메시지를 보냄
                 tcpConnection.sendAckMessage("Ack message " + receiver_udp.receivedMessageNum + "  ");
-                
                 System.out.println("(1) UDP Message state: " + receiver_udp.hasNewMessage());
-                
 
                 // 플래그 초기화
                 receiver_udp.resetNewMessageFlag();
